@@ -1,0 +1,73 @@
+<html>
+<title>Chat with go</title>
+<head>
+<script type="text/javascript" src="/_ah/channel/jsapi"></script>
+
+</head>
+<body>
+  <script type='text/javascript'>
+      var state = {
+        me: '{{ .me }}'
+      };
+      
+  	sendMessage = function(path, text) {
+  path += '?g=' + state.me;
+  if (text) {
+    path += '&' + text;
+  }
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', path, true);
+  xhr.send();
+};
+
+onOpened = function() {
+        sendMessage('/opened','toto=jle');
+        connected = true;
+      };
+      
+onMessage = function(m) {
+	  //alert(JSON.stringify(m));
+      newMsg = JSON.parse(m.data);
+      //alert('new>>'+newMsg.UserX+' msg>'+newMsg.MessageX+' at '+newMsg.MessageDateX);
+      var ma_liste = document.getElementById("chat");
+      var li_a_ajouter = '<li>at '+newMsg.MessageDateX+ ' <strong>'+newMsg.UserX+'</strong> wrote : <br/>'+newMsg.MessageX+ '<\/li>';
+	  var contenu_ma_liste = ma_liste.innerHTML;
+	  contenu_ma_liste = contenu_ma_liste + li_a_ajouter;
+  	  ma_liste.innerHTML = contenu_ma_liste;
+      };
+
+talkInChat = function() {
+      sendMessage('/talk', 'msg='+document.getElementById("content").value);
+      };
+
+      openChannel = function() {
+        var token = '{{ .token }}';
+        var channel = new goog.appengine.Channel(token);
+        var handler = {
+          'onopen': onOpened,
+          'onmessage': onMessage,
+          'onerror': function() {alert('error');},
+          'onclose': function() {alert('close');}
+        };
+        var socket = channel.open(handler);
+        socket.onopen = onOpened;
+        socket.onmessage = onMessage;
+      };
+      
+      initialize = function() {
+          openChannel();
+          var button = document.getElementById('talk');
+          button.onclick = new Function('talkInChat()');
+      }; 
+
+      setTimeout(initialize, 100);
+  </script>
+  
+  <form>
+  	  <div><ul id='chat'></ul></div>
+      <div><textarea id="content" rows="3" cols="60"></textarea></div>
+      <div><input type="button" id="talk" value="Talk"></div>
+  </form>
+</body>
+
+</html>
